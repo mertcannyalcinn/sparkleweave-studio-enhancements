@@ -299,7 +299,13 @@ export default function Index() {
         {/* User Section */}
         <div className="mt-auto space-y-4">
           <button 
-            onClick={() => toast.info('Çıkış yapılıyor...')}
+            onClick={() => {
+              toast.info('Çıkış yapılıyor...');
+              // Simüle edilmiş çıkış - sayfayı yenile
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            }}
             className="w-10 h-10 rounded-full bg-surface flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-all" 
             title="Çıkış Yap"
           >
