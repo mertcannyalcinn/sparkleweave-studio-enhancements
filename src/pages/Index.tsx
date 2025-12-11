@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useAuth } from '@/contexts/AuthContext';
 import { NavIcon } from '@/components/NavIcon';
 import { Header } from '@/components/Header';
 import { PostComposer } from '@/components/PostComposer';
@@ -10,23 +12,26 @@ import { ProfileView } from '@/components/ProfileView';
 import { RightSidebar } from '@/components/RightSidebar';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { CreateMatchModal } from '@/components/modals/CreateMatchModal';
-import { RatingModal } from '@/components/modals/RatingModal';
+import { PlayerRatingModal } from '@/components/modals/PlayerRatingModal';
 import { UserProfileModal } from '@/components/modals/UserProfileModal';
 import { SearchView } from '@/components/sections/SearchView';
 import { AcademyView } from '@/components/sections/AcademyView';
 import { LMGView } from '@/components/sections/LMGView';
 
 import { 
-  DEFAULT_USER, 
   SAMPLE_POSTS, 
   BOT_USERS, 
   Post, 
-  Position 
+  Position,
+  User as UserType,
 } from '@/lib/data';
 
 type NavSection = 'home' | 'search' | 'academy' | 'lmg' | 'notifications' | 'profile';
 
 export default function Index() {
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+  
   // State
   const [posts, setPosts] = useState<Post[]>(SAMPLE_POSTS);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -38,20 +43,43 @@ export default function Index() {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  // Current user (simulated)
-  const currentUser = {
-    ...DEFAULT_USER,
-    id: "current-user",
-    name: "Demo Kullanıcı",
-    handle: "@demo_user",
-    avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200",
-    qorsScore: 7.5,
-    matchesPlayed: 42,
-    position: 'midfielder' as Position,
-    stats: { mvp: 5, goals: 12, assists: 8 },
-    followers: 156,
-    following: 89,
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  // Current user from auth
+  const currentUser: UserType = {
+    id: user?.id || 'guest',
+    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kullanıcı',
+    handle: `@${user?.email?.split('@')[0] || 'kullanici'}`,
+    avatar: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200',
+    cover: 'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?auto=format&fit=crop&q=80&w=1200',
+    qorsScore: 5.0,
+    fairPlayBadge: false,
+    matchesPlayed: 0,
+    reliability: 'Yeni',
+    role: 'Oyuncu',
+    bio: 'Futbol tutkunu',
+    position: 'midfielder',
+    stats: { mvp: 0, goals: 0, assists: 0 },
+    followers: 0,
+    following: 0,
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground mt-4">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter posts
   const filteredPosts = posts.filter((p) => {
@@ -164,13 +192,18 @@ export default function Index() {
     toast.success('Maç oluşturuldu!');
   };
 
-  const handleRatingSubmit = (ratings: Record<string, number>, position: Position) => {
-    console.log('Ratings:', ratings, 'Position:', position);
-    toast.success('Değerlendirme gönderildi!');
+  const handlePlayerRatingSubmit = (data: {
+    playerId: string;
+    position: Position;
+    skillRatings: Record<string, number>;
+    sportsmanshipRatings: Record<string, number>;
+    comment?: string;
+  }) => {
+    console.log('Player Rating:', data);
+    // In a real app, this would be saved to the database
   };
 
   const handleNavClick = (navId: string) => {
-    // Close notifications if clicking elsewhere
     if (navId !== 'notifications') {
       setShowNotifications(false);
     }
@@ -185,7 +218,6 @@ export default function Index() {
   };
 
   const handleUserClick = (userId: string) => {
-    // Check if it's a bot user
     const botUser = BOT_USERS.find(u => u.id === userId);
     if (botUser) {
       setSelectedUserId(userId);
@@ -195,6 +227,12 @@ export default function Index() {
   const handleCategorySelect = (category: string) => {
     setActiveCategory(category);
     setActiveNav('home');
+  };
+
+  const handleSignOut = async () => {
+    toast.info('Çıkış yapılıyor...');
+    await signOut();
+    navigate('/auth');
   };
 
   const savedPosts = posts.filter(p => p.isSaved);
@@ -209,11 +247,9 @@ export default function Index() {
         />
       )}
       {isRatingModalOpen && (
-        <RatingModal 
+        <PlayerRatingModal 
           onClose={() => setIsRatingModalOpen(false)} 
-          onSubmit={handleRatingSubmit}
-          playerName="Maç Performansı"
-          playerPosition={currentUser.position}
+          onSubmit={handlePlayerRatingSubmit}
         />
       )}
       {selectedUserId && (
@@ -299,13 +335,7 @@ export default function Index() {
         {/* User Section */}
         <div className="mt-auto space-y-4">
           <button 
-            onClick={() => {
-              toast.info('Çıkış yapılıyor...');
-              // Simüle edilmiş çıkış - sayfayı yenile
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
-            }}
+            onClick={handleSignOut}
             className="w-10 h-10 rounded-full bg-surface flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-all" 
             title="Çıkış Yap"
           >

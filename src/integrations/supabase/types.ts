@@ -14,7 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      player_ratings: {
+        Row: {
+          average_rating: number
+          comment: string | null
+          communication: number
+          created_at: string | null
+          id: string
+          position: string
+          rated_user_id: string
+          rater_id: string
+          reliability: number
+          skill_1: number
+          skill_2: number
+          skill_3: number
+          skill_4: number
+          sportsmanship: number
+          teamwork: number
+        }
+        Insert: {
+          average_rating: number
+          comment?: string | null
+          communication: number
+          created_at?: string | null
+          id?: string
+          position: string
+          rated_user_id: string
+          rater_id: string
+          reliability: number
+          skill_1: number
+          skill_2: number
+          skill_3: number
+          skill_4: number
+          sportsmanship: number
+          teamwork: number
+        }
+        Update: {
+          average_rating?: number
+          comment?: string | null
+          communication?: number
+          created_at?: string | null
+          id?: string
+          position?: string
+          rated_user_id?: string
+          rater_id?: string
+          reliability?: number
+          skill_1?: number
+          skill_2?: number
+          skill_3?: number
+          skill_4?: number
+          sportsmanship?: number
+          teamwork?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          assists: number | null
+          avatar_url: string | null
+          bio: string | null
+          cover_url: string | null
+          created_at: string | null
+          fair_play_badge: boolean | null
+          goals: number | null
+          handle: string | null
+          id: string
+          matches_played: number | null
+          mvp_count: number | null
+          name: string | null
+          position: string | null
+          qors_score: number | null
+          reliability: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assists?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          fair_play_badge?: boolean | null
+          goals?: number | null
+          handle?: string | null
+          id?: string
+          matches_played?: number | null
+          mvp_count?: number | null
+          name?: string | null
+          position?: string | null
+          qors_score?: number | null
+          reliability?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assists?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          fair_play_badge?: boolean | null
+          goals?: number | null
+          handle?: string | null
+          id?: string
+          matches_played?: number | null
+          mvp_count?: number | null
+          name?: string | null
+          position?: string | null
+          qors_score?: number | null
+          reliability?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
