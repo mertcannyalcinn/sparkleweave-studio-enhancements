@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      match_participants: {
+        Row: {
+          assists: number | null
+          created_at: string
+          goals: number | null
+          id: string
+          is_mvp: boolean | null
+          match_id: string
+          team: string
+          user_id: string
+        }
+        Insert: {
+          assists?: number | null
+          created_at?: string
+          goals?: number | null
+          id?: string
+          is_mvp?: boolean | null
+          match_id: string
+          team: string
+          user_id: string
+        }
+        Update: {
+          assists?: number | null
+          created_at?: string
+          goals?: number | null
+          id?: string
+          is_mvp?: boolean | null
+          match_id?: string
+          team?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participants_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          away_team_score: number | null
+          created_at: string
+          home_team_score: number | null
+          id: string
+          location: string | null
+          match_date: string
+          status: string | null
+        }
+        Insert: {
+          away_team_score?: number | null
+          created_at?: string
+          home_team_score?: number | null
+          id?: string
+          location?: string | null
+          match_date?: string
+          status?: string | null
+        }
+        Update: {
+          away_team_score?: number | null
+          created_at?: string
+          home_team_score?: number | null
+          id?: string
+          location?: string | null
+          match_date?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       player_ratings: {
         Row: {
           average_rating: number
