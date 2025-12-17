@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut, Loader2 } from 'lucide-react';
+import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut, Loader2, History } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -329,6 +329,13 @@ export default function Index() {
             id="profile" 
             activeNav={activeNav} 
             onClick={handleNavClick} 
+          />
+          <NavIcon 
+            icon={History} 
+            label="Maç Geçmişi" 
+            id="history" 
+            activeNav={activeNav} 
+            onClick={() => navigate('/history')} 
           />
         </nav>
 
