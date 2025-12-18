@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { MapPin, Clock, User, MessageSquare, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { MapPin, Clock, User, MessageSquare, ChevronRight, CheckCircle2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Post, POSITIONS, Position } from '@/lib/data';
 
@@ -16,7 +16,8 @@ interface JoinMatchModalProps {
 }
 
 export interface JoinMatchData {
-  position: Position;
+  positions: Position[];
+  preferredPosition: Position;
   experience: string;
   message: string;
   postId: string;
@@ -31,15 +32,41 @@ const EXPERIENCE_OPTIONS = [
 
 export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchModalProps) {
   const [step, setStep] = useState(1);
-  const [position, setPosition] = useState<Position>('midfielder');
+  const [positions, setPositions] = useState<Position[]>(['midfielder']);
+  const [preferredPosition, setPreferredPosition] = useState<Position>('midfielder');
   const [experience, setExperience] = useState('intermediate');
   const [message, setMessage] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const togglePosition = (pos: Position) => {
+    setPositions(prev => {
+      if (prev.includes(pos)) {
+        const newPositions = prev.filter(p => p !== pos);
+        if (preferredPosition === pos && newPositions.length > 0) {
+          setPreferredPosition(newPositions[0]);
+        }
+        return newPositions;
+      } else {
+        if (prev.length === 0) {
+          setPreferredPosition(pos);
+        }
+        return [...prev, pos];
+      }
+    });
+  };
+
+  const togglePreferred = (pos: Position, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (positions.includes(pos)) {
+      setPreferredPosition(pos);
+    }
+  };
+
   const handleSubmit = () => {
-    if (!post) return;
+    if (!post || positions.length === 0) return;
     onSubmit({
-      position,
+      positions,
+      preferredPosition,
       experience,
       message,
       postId: post.id,
@@ -49,6 +76,8 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
       setIsSubmitted(false);
       setStep(1);
       setMessage('');
+      setPositions(['midfielder']);
+      setPreferredPosition('midfielder');
       onClose();
     }, 2000);
   };
@@ -56,6 +85,8 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
   const handleClose = () => {
     setStep(1);
     setMessage('');
+    setPositions(['midfielder']);
+    setPreferredPosition('midfielder');
     setIsSubmitted(false);
     onClose();
   };
@@ -130,30 +161,66 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
               <div className="space-y-4 animate-fade-in">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">Hangi pozisyonda oynuyorsun?</span>
+                  <span className="text-sm font-medium">Hangi pozisyonlarda oynayabilirsin?</span>
                 </div>
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Birden fazla seçebilirsin. En çok tercih ettiğini yıldızla ⭐
+                </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {(Object.keys(POSITIONS) as Position[]).map((pos) => (
-                    <button
-                      key={pos}
-                      onClick={() => setPosition(pos)}
-                      className={cn(
-                        "p-4 rounded-xl border-2 transition-all text-left",
-                        position === pos
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <div className={cn("text-sm font-bold", POSITIONS[pos].className)}>
-                        {POSITIONS[pos].labelTr}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {POSITIONS[pos].attributes.slice(0, 2).map(a => a.label).join(', ')}
-                      </div>
-                    </button>
-                  ))}
+                  {(Object.keys(POSITIONS) as Position[]).map((pos) => {
+                    const isSelected = positions.includes(pos);
+                    const isPreferred = preferredPosition === pos;
+                    return (
+                      <button
+                        key={pos}
+                        onClick={() => togglePosition(pos)}
+                        className={cn(
+                          "p-4 rounded-xl border-2 transition-all text-left relative",
+                          isSelected
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className={cn("text-sm font-bold", POSITIONS[pos].className)}>
+                              {POSITIONS[pos].labelTr}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {POSITIONS[pos].attributes.slice(0, 2).map(a => a.label).join(', ')}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <button
+                              onClick={(e) => togglePreferred(pos, e)}
+                              className={cn(
+                                "p-1 rounded-full transition-all",
+                                isPreferred 
+                                  ? "text-yellow-500" 
+                                  : "text-muted-foreground hover:text-yellow-500/70"
+                              )}
+                            >
+                              <Star 
+                                className="w-4 h-4" 
+                                fill={isPreferred ? "currentColor" : "none"} 
+                              />
+                            </button>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div className="absolute top-2 right-2">
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <Button onClick={() => setStep(2)} className="w-full gap-2">
+                <Button 
+                  onClick={() => setStep(2)} 
+                  className="w-full gap-2"
+                  disabled={positions.length === 0}
+                >
                   Devam Et <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -213,7 +280,15 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
                 <div className="p-4 bg-surface rounded-xl border border-border">
                   <p className="text-sm font-medium mb-2">Başvuru Özeti</p>
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>📍 Pozisyon: <span className="text-foreground">{POSITIONS[position].labelTr}</span></p>
+                    <p>📍 Pozisyonlar: <span className="text-foreground">
+                      {positions.map((p, idx) => (
+                        <span key={p}>
+                          {POSITIONS[p].labelTr}
+                          {p === preferredPosition && ' ⭐'}
+                          {idx < positions.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </span></p>
                     <p>⚽ Tecrübe: <span className="text-foreground">{EXPERIENCE_OPTIONS.find(e => e.id === experience)?.label}</span></p>
                   </div>
                 </div>
