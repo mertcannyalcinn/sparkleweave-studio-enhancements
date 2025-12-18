@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Image, Send, X, Smile } from 'lucide-react';
+import { Image, Send, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { EmojiPicker } from './EmojiPicker';
 
 interface PostComposerProps {
   newPostText: string;
@@ -19,6 +20,7 @@ export function PostComposer({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,6 +47,23 @@ export function PostComposer({
     }
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newText = newPostText.substring(0, start) + emoji + newPostText.substring(end);
+      setNewPostText(newText);
+      // Focus and set cursor position after emoji
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+      }, 0);
+    } else {
+      setNewPostText(newPostText + emoji);
+    }
+  };
+
   return (
     <div className={cn(
       "mx-6 mt-6 p-4 bg-card rounded-2xl border transition-all duration-300",
@@ -58,6 +77,7 @@ export function PostComposer({
         />
         <div className="flex-1">
           <textarea
+            ref={textareaRef}
             value={newPostText}
             onChange={(e) => setNewPostText(e.target.value)}
             onFocus={() => setIsFocused(true)}
@@ -101,9 +121,7 @@ export function PostComposer({
               >
                 <Image className="w-5 h-5" />
               </label>
-              <button className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center hover:bg-surface-hover hover:text-primary transition-all">
-                <Smile className="w-5 h-5" />
-              </button>
+              <EmojiPicker onEmojiSelect={handleEmojiSelect} />
             </div>
 
             <Button
