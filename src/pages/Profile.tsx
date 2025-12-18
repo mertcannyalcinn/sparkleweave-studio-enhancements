@@ -7,6 +7,7 @@ import { ProfileComments } from '@/components/ProfileComments';
 import { ProfileMatchHistory } from '@/components/ProfileMatchHistory';
 import { Button } from '@/components/ui/button';
 import { BOT_USERS, POSITIONS, getScoreColor, getReliabilityBadge, SAMPLE_POSTS } from '@/lib/data';
+import { getBotConversation, createBotConversation, isBotUser } from '@/lib/botMessaging';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -121,8 +122,20 @@ export default function Profile() {
   const handleStartConversation = async () => {
     if (!currentUser || !userId) return;
     
+    // Handle bot conversation
+    if (isBotUser(userId)) {
+      const existingConv = getBotConversation(currentUser.id, userId);
+      if (existingConv) {
+        navigate(`/messages/${existingConv.id}`);
+      } else {
+        const newConv = createBotConversation(currentUser.id, userId);
+        navigate(`/messages/${newConv.id}`);
+      }
+      return;
+    }
+    
+    // Handle real user conversation
     try {
-      // Check if conversation exists
       const { data: existing } = await supabase
         .from('conversations')
         .select('id')
@@ -134,7 +147,6 @@ export default function Profile() {
         return;
       }
 
-      // Create new conversation
       const { data: newConv, error } = await supabase
         .from('conversations')
         .insert({
@@ -149,6 +161,17 @@ export default function Profile() {
     } catch (error) {
       console.error('Error starting conversation:', error);
       toast.error('Mesaj başlatılamadı');
+    }
+  };
+
+  const handleBotMessage = () => {
+    if (!currentUser || !userId) return;
+    const existingConv = getBotConversation(currentUser.id, userId);
+    if (existingConv) {
+      navigate(`/messages/${existingConv.id}`);
+    } else {
+      const newConv = createBotConversation(currentUser.id, userId);
+      navigate(`/messages/${newConv.id}`);
     }
   };
 
@@ -278,7 +301,7 @@ export default function Profile() {
               <UserPlus className="w-4 h-4 mr-2" />
               Takip Et
             </Button>
-            <Button variant="outline" className="flex-1" onClick={() => toast.info('Demo kullanıcılarına mesaj gönderilemez')}>
+            <Button variant="outline" className="flex-1" onClick={handleBotMessage}>
               <MessageCircle className="w-4 h-4 mr-2" />
               Mesaj Gönder
             </Button>
