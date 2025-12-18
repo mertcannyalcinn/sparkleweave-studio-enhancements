@@ -4,6 +4,17 @@ import { ArrowLeft, Send, MessageCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { BOT_USERS } from '@/lib/data';
+import { 
+  getBotConversations, 
+  getBotConversationById, 
+  createBotConversation,
+  sendBotMessage,
+  simulateBotResponse,
+  isBotUser,
+  BotConversation,
+  BotMessage 
+} from '@/lib/botMessaging';
 import { cn } from '@/lib/utils';
 
 interface Conversation {
@@ -17,6 +28,7 @@ interface Conversation {
     handle: string | null;
   };
   last_message?: string;
+  isBot?: boolean;
 }
 
 interface Message {
@@ -39,6 +51,7 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [isBotConversation, setIsBotConversation] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -49,34 +62,41 @@ export default function Messages() {
     }
     
     if (user) {
-      fetchConversations();
+      fetchAllConversations();
     }
   }, [user, authLoading]);
 
   useEffect(() => {
     if (conversationId && user) {
-      fetchMessages(conversationId);
-      
-      // Subscribe to new messages
-      const channel = supabase
-        .channel(`messages-${conversationId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `conversation_id=eq.${conversationId}`
-          },
-          (payload) => {
-            setMessages(prev => [...prev, payload.new as Message]);
-          }
-        )
-        .subscribe();
+      // Check if it's a bot conversation
+      if (conversationId.startsWith('bot-conv-')) {
+        setIsBotConversation(true);
+        loadBotConversation(conversationId);
+      } else {
+        setIsBotConversation(false);
+        fetchMessages(conversationId);
+        
+        // Subscribe to new messages
+        const channel = supabase
+          .channel(`messages-${conversationId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'messages',
+              filter: `conversation_id=eq.${conversationId}`
+            },
+            (payload) => {
+              setMessages(prev => [...prev, payload.new as Message]);
+            }
+          )
+          .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      }
     }
   }, [conversationId, user]);
 
@@ -84,18 +104,45 @@ export default function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const fetchConversations = async () => {
+  const loadBotConversation = (convId: string) => {
+    const botConv = getBotConversationById(convId);
+    if (botConv) {
+      const botUser = BOT_USERS.find(b => b.id === botConv.botId);
+      setSelectedConversation({
+        id: botConv.id,
+        participant_1: botConv.participantId,
+        participant_2: botConv.botId,
+        updated_at: botConv.updatedAt,
+        other_profile: botUser ? {
+          name: botUser.name,
+          avatar_url: botUser.avatar,
+          handle: botUser.handle,
+        } : null,
+        isBot: true,
+      });
+      setMessages(botConv.messages.map(m => ({
+        id: m.id,
+        conversation_id: m.conversationId,
+        sender_id: m.senderId,
+        content: m.content,
+        is_read: m.isRead,
+        created_at: m.createdAt,
+      })));
+    }
+  };
+
+  const fetchAllConversations = async () => {
     try {
+      // Fetch real conversations
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .or(`participant_1.eq.${user!.id},participant_2.eq.${user!.id}`)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      let allConversations: Conversation[] = [];
 
       if (data && data.length > 0) {
-        // Get other participants' profiles
         const otherUserIds = data.map(c => 
           c.participant_1 === user!.id ? c.participant_2 : c.participant_1
         );
@@ -107,7 +154,6 @@ export default function Messages() {
 
         const profileMap = new Map(profiles?.map(p => [p.user_id, p]));
 
-        // Get last messages
         const { data: lastMessages } = await supabase
           .from('messages')
           .select('conversation_id, content')
@@ -121,20 +167,47 @@ export default function Messages() {
           }
         });
 
-        const conversationsWithProfiles = data.map(conv => ({
+        allConversations = data.map(conv => ({
           ...conv,
           other_profile: profileMap.get(
             conv.participant_1 === user!.id ? conv.participant_2 : conv.participant_1
           ),
-          last_message: lastMessageMap.get(conv.id)
+          last_message: lastMessageMap.get(conv.id),
+          isBot: false,
         }));
+      }
 
-        setConversations(conversationsWithProfiles);
+      // Add bot conversations
+      const botConvs = getBotConversations(user!.id);
+      const botConversations: Conversation[] = botConvs.map(bc => {
+        const botUser = BOT_USERS.find(b => b.id === bc.botId);
+        return {
+          id: bc.id,
+          participant_1: bc.participantId,
+          participant_2: bc.botId,
+          updated_at: bc.updatedAt,
+          other_profile: botUser ? {
+            name: botUser.name,
+            avatar_url: botUser.avatar,
+            handle: botUser.handle,
+          } : null,
+          last_message: bc.messages.length > 0 ? bc.messages[bc.messages.length - 1].content : undefined,
+          isBot: true,
+        };
+      });
 
-        // Set selected conversation if URL has conversationId
-        if (conversationId) {
-          const selected = conversationsWithProfiles.find(c => c.id === conversationId);
-          setSelectedConversation(selected || null);
+      // Merge and sort by updated_at
+      allConversations = [...allConversations, ...botConversations]
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+      setConversations(allConversations);
+
+      // Set selected conversation if URL has conversationId
+      if (conversationId) {
+        const selected = allConversations.find(c => c.id === conversationId);
+        if (selected) {
+          setSelectedConversation(selected);
+          setIsBotConversation(selected.isBot || false);
         }
       }
     } catch (error) {
@@ -155,7 +228,6 @@ export default function Messages() {
       if (error) throw error;
       setMessages(data || []);
 
-      // Mark messages as read
       await supabase
         .from('messages')
         .update({ is_read: true })
@@ -171,33 +243,69 @@ export default function Messages() {
     if (!newMessage.trim() || !conversationId || !user) return;
 
     setSending(true);
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content: newMessage.trim()
-        });
+    
+    if (isBotConversation) {
+      // Handle bot message
+      try {
+        const userMsg = sendBotMessage(conversationId, user.id, newMessage.trim());
+        setMessages(prev => [...prev, {
+          id: userMsg.id,
+          conversation_id: userMsg.conversationId,
+          sender_id: userMsg.senderId,
+          content: userMsg.content,
+          is_read: userMsg.isRead,
+          created_at: userMsg.createdAt,
+        }]);
+        setNewMessage('');
 
-      if (error) throw error;
-      
-      setNewMessage('');
-      
-      // Update conversation timestamp
-      await supabase
-        .from('conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', conversationId);
-    } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      setSending(false);
+        // Simulate bot response after a short delay
+        const botConv = getBotConversationById(conversationId);
+        if (botConv) {
+          setTimeout(() => {
+            const botMsg = simulateBotResponse(conversationId, botConv.botId);
+            setMessages(prev => [...prev, {
+              id: botMsg.id,
+              conversation_id: botMsg.conversationId,
+              sender_id: botMsg.senderId,
+              content: botMsg.content,
+              is_read: botMsg.isRead,
+              created_at: botMsg.createdAt,
+            }]);
+          }, 1000 + Math.random() * 2000);
+        }
+      } catch (error) {
+        console.error('Error sending bot message:', error);
+      }
+    } else {
+      // Handle real message
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_id: user.id,
+            content: newMessage.trim()
+          });
+
+        if (error) throw error;
+        
+        setNewMessage('');
+        
+        await supabase
+          .from('conversations')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', conversationId);
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
+    
+    setSending(false);
   };
 
   const selectConversation = (conv: Conversation) => {
     setSelectedConversation(conv);
+    setIsBotConversation(conv.isBot || false);
     navigate(`/messages/${conv.id}`);
   };
 
@@ -231,7 +339,6 @@ export default function Messages() {
         "w-full md:w-80 bg-card border-r border-border flex flex-col",
         conversationId && "hidden md:flex"
       )}>
-        {/* Header */}
         <div className="p-4 border-b border-border flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
@@ -242,12 +349,12 @@ export default function Messages() {
           <h1 className="text-xl font-bold">Mesajlar</h1>
         </div>
 
-        {/* Conversations */}
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Henüz mesajınız yok</p>
+              <p className="text-sm mt-2">Bir oyuncunun profiline gidip mesaj gönderebilirsiniz</p>
             </div>
           ) : (
             conversations.map((conv) => (
@@ -259,11 +366,18 @@ export default function Messages() {
                   conv.id === conversationId && "bg-surface"
                 )}
               >
-                <img
-                  src={conv.other_profile?.avatar_url || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200'}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={conv.other_profile?.avatar_url || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200'}
+                    alt="Avatar"
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  {conv.isBot && (
+                    <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-[8px] text-primary-foreground font-bold">
+                      🤖
+                    </span>
+                  )}
+                </div>
                 <div className="flex-1 text-left min-w-0">
                   <p className="font-medium truncate">
                     {conv.other_profile?.name || 'Kullanıcı'}
@@ -290,7 +404,6 @@ export default function Messages() {
       )}>
         {conversationId && selectedConversation ? (
           <>
-            {/* Chat Header */}
             <div className="p-4 border-b border-border flex items-center gap-3 bg-card">
               <button
                 onClick={() => navigate('/messages')}
@@ -299,18 +412,21 @@ export default function Messages() {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <button
-                onClick={() => navigate(`/profile/${
-                  selectedConversation.participant_1 === user!.id 
-                    ? selectedConversation.participant_2 
-                    : selectedConversation.participant_1
-                }`)}
+                onClick={() => navigate(`/profile/${selectedConversation.participant_2}`)}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
               >
-                <img
-                  src={selectedConversation.other_profile?.avatar_url || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200'}
-                  alt="Avatar"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={selectedConversation.other_profile?.avatar_url || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200'}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  {isBotConversation && (
+                    <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-[8px]">
+                      🤖
+                    </span>
+                  )}
+                </div>
                 <div className="text-left">
                   <p className="font-medium">{selectedConversation.other_profile?.name || 'Kullanıcı'}</p>
                   <p className="text-xs text-muted-foreground">{selectedConversation.other_profile?.handle}</p>
@@ -318,8 +434,13 @@ export default function Messages() {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Henüz mesaj yok</p>
+                  <p className="text-sm">İlk mesajı sen gönder!</p>
+                </div>
+              )}
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -349,7 +470,6 @@ export default function Messages() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
             <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card">
               <div className="flex gap-3">
                 <input
@@ -370,7 +490,7 @@ export default function Messages() {
             <div className="text-center">
               <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <p className="text-xl font-medium">Mesajlarınız</p>
-              <p className="text-sm mt-2">Bir sohbet seçin veya yeni bir mesaj başlatın</p>
+              <p className="text-sm mt-2">Bir sohbet seçin veya bir oyuncunun profilinden mesaj gönderin</p>
             </div>
           </div>
         )}
