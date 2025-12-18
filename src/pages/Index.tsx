@@ -330,6 +330,24 @@ export default function Index() {
                   setShowNotifications(false);
                 }}
                 onClose={() => setShowNotifications(false)}
+                onPostClick={(postId) => {
+                  // Scroll to post or highlight it
+                  setActiveNav('home');
+                  setActiveCategory('all');
+                  setShowNotifications(false);
+                  // Highlight the post briefly
+                  setTimeout(() => {
+                    const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postElement) {
+                      postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      postElement.classList.add('ring-2', 'ring-primary');
+                      setTimeout(() => {
+                        postElement.classList.remove('ring-2', 'ring-primary');
+                      }, 2000);
+                    }
+                  }, 100);
+                }}
+                onUserClick={handleUserClick}
               />
             )}
           </div>
@@ -407,7 +425,12 @@ export default function Index() {
                   </div>
                 ) : (
                   filteredPosts.map((post, index) => (
-                    <div key={post.id} className={`stagger-${(index % 6) + 1}`} style={{ opacity: 0, animation: 'fadeInUp 0.5s ease-out forwards', animationDelay: `${index * 0.05}s` }}>
+                    <div 
+                      key={post.id} 
+                      data-post-id={post.id}
+                      className={`stagger-${(index % 6) + 1} transition-all duration-300 rounded-2xl`} 
+                      style={{ opacity: 0, animation: 'fadeInUp 0.5s ease-out forwards', animationDelay: `${index * 0.05}s` }}
+                    >
                       <PostCard
                         post={post}
                         currentUserId={currentUser.id}
