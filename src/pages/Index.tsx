@@ -4,6 +4,7 @@ import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut, Loader
 import { toast } from 'sonner';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { saveBotRating, isBotUser } from '@/lib/botMessaging';
 import { NavIcon } from '@/components/NavIcon';
 import { Header } from '@/components/Header';
 import { PostComposer } from '@/components/PostComposer';
@@ -196,8 +197,31 @@ export default function Index() {
     sportsmanshipRatings: Record<string, number>;
     comment?: string;
   }) => {
-    console.log('Player Rating:', data);
-    // In a real app, this would be saved to the database
+    // Save bot ratings to localStorage
+    if (isBotUser(data.playerId)) {
+      const skillValues = Object.values(data.skillRatings);
+      const sportsValues = Object.values(data.sportsmanshipRatings);
+      const allValues = [...skillValues, ...sportsValues];
+      const averageRating = allValues.reduce((a, b) => a + b, 0) / allValues.length;
+
+      saveBotRating({
+        rated_user_id: data.playerId,
+        rater_id: currentUser.id,
+        rater_name: currentUser.name,
+        rater_avatar: currentUser.avatar,
+        average_rating: averageRating,
+        skill_1: skillValues[0] || 5,
+        skill_2: skillValues[1] || 5,
+        skill_3: skillValues[2] || 5,
+        skill_4: skillValues[3] || 5,
+        sportsmanship: data.sportsmanshipRatings.sportsmanship,
+        reliability: data.sportsmanshipRatings.reliability,
+        teamwork: data.sportsmanshipRatings.teamwork,
+        communication: data.sportsmanshipRatings.communication,
+        position: data.position,
+        comment: data.comment,
+      });
+    }
   };
 
   const handleNavClick = (navId: string) => {
