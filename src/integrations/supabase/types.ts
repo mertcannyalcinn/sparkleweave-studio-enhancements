@@ -139,6 +139,30 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_comments: {
+        Row: {
+          commenter_id: string
+          content: string
+          created_at: string
+          id: string
+          profile_user_id: string
+        }
+        Insert: {
+          commenter_id: string
+          content: string
+          created_at?: string
+          id?: string
+          profile_user_id: string
+        }
+        Update: {
+          commenter_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           assists: number | null

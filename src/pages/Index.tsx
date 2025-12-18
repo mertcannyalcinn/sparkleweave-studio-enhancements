@@ -218,8 +218,8 @@ export default function Index() {
   };
 
   const handleUserClick = (userId: string) => {
-    const botUser = BOT_USERS.find(u => u.id === userId);
-    if (botUser) {
+    // Allow clicking on both bot users and real users
+    if (userId !== currentUser.id) {
       setSelectedUserId(userId);
     }
   };
@@ -256,6 +256,7 @@ export default function Index() {
         <UserProfileModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
+          onUserClick={(newUserId) => setSelectedUserId(newUserId)}
         />
       )}
 
