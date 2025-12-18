@@ -222,3 +222,56 @@ export function getRatingsForBot(botUserId: string): BotRating[] {
   const ratings = getBotRatings();
   return ratings.filter(r => r.rated_user_id === botUserId);
 }
+
+// Bot Follow System
+const BOT_FOLLOWS_KEY = 'qors_bot_follows';
+
+export interface BotFollow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+}
+
+export function getBotFollows(): BotFollow[] {
+  try {
+    const stored = localStorage.getItem(BOT_FOLLOWS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isFollowingBot(userId: string, botId: string): boolean {
+  const follows = getBotFollows();
+  return follows.some(f => f.follower_id === userId && f.following_id === botId);
+}
+
+export function followBot(userId: string, botId: string): BotFollow {
+  const follows = getBotFollows();
+  const newFollow: BotFollow = {
+    id: `bot-follow-${Date.now()}`,
+    follower_id: userId,
+    following_id: botId,
+    created_at: new Date().toISOString(),
+  };
+  follows.push(newFollow);
+  localStorage.setItem(BOT_FOLLOWS_KEY, JSON.stringify(follows));
+  return newFollow;
+}
+
+export function unfollowBot(userId: string, botId: string): void {
+  const follows = getBotFollows();
+  const filtered = follows.filter(f => !(f.follower_id === userId && f.following_id === botId));
+  localStorage.setItem(BOT_FOLLOWS_KEY, JSON.stringify(filtered));
+}
+
+export function getBotFollowerCount(botId: string): number {
+  const follows = getBotFollows();
+  return follows.filter(f => f.following_id === botId).length;
+}
+
+export function getUserBotFollowingCount(userId: string): number {
+  const follows = getBotFollows();
+  return follows.filter(f => f.follower_id === userId).length;
+}
