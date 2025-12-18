@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut, Loader2, History } from 'lucide-react';
+import { Trophy, Home, Search, Bell, User, BookOpen, AlertCircle, LogOut, Loader2, History, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,12 +8,10 @@ import { NavIcon } from '@/components/NavIcon';
 import { Header } from '@/components/Header';
 import { PostComposer } from '@/components/PostComposer';
 import { PostCard } from '@/components/PostCard';
-import { ProfileView } from '@/components/ProfileView';
 import { RightSidebar } from '@/components/RightSidebar';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { CreateMatchModal } from '@/components/modals/CreateMatchModal';
 import { PlayerRatingModal } from '@/components/modals/PlayerRatingModal';
-import { UserProfileModal } from '@/components/modals/UserProfileModal';
 import { SearchView } from '@/components/sections/SearchView';
 import { AcademyView } from '@/components/sections/AcademyView';
 import { LMGView } from '@/components/sections/LMGView';
@@ -41,7 +39,6 @@ export default function Index() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -218,10 +215,8 @@ export default function Index() {
   };
 
   const handleUserClick = (userId: string) => {
-    // Allow clicking on both bot users and real users
-    if (userId !== currentUser.id) {
-      setSelectedUserId(userId);
-    }
+    // Navigate to profile page
+    navigate(`/profile/${userId}`);
   };
 
   const handleCategorySelect = (category: string) => {
@@ -234,8 +229,6 @@ export default function Index() {
     await signOut();
     navigate('/auth');
   };
-
-  const savedPosts = posts.filter(p => p.isSaved);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex overflow-hidden">
@@ -250,13 +243,6 @@ export default function Index() {
         <PlayerRatingModal 
           onClose={() => setIsRatingModalOpen(false)} 
           onSubmit={handlePlayerRatingSubmit}
-        />
-      )}
-      {selectedUserId && (
-        <UserProfileModal
-          userId={selectedUserId}
-          onClose={() => setSelectedUserId(null)}
-          onUserClick={(newUserId) => setSelectedUserId(newUserId)}
         />
       )}
 
@@ -329,7 +315,7 @@ export default function Index() {
             label="Profilim" 
             id="profile" 
             activeNav={activeNav} 
-            onClick={handleNavClick} 
+            onClick={() => navigate(`/profile/${currentUser.id}`)} 
           />
           <NavIcon 
             icon={History} 
@@ -337,6 +323,13 @@ export default function Index() {
             id="history" 
             activeNav={activeNav} 
             onClick={() => navigate('/history')} 
+          />
+          <NavIcon 
+            icon={MessageCircle} 
+            label="Mesajlar" 
+            id="messages" 
+            activeNav={activeNav} 
+            onClick={() => navigate('/messages')} 
           />
         </nav>
 
@@ -350,7 +343,7 @@ export default function Index() {
             <LogOut className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setActiveNav('profile')}
+            onClick={() => navigate(`/profile/${currentUser.id}`)}
             className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-border hover:ring-primary transition-all"
           >
             <img 
@@ -427,16 +420,6 @@ export default function Index() {
           />
         )}
 
-        {/* Profile View */}
-        {activeNav === 'profile' && (
-          <ProfileView 
-            user={currentUser} 
-            posts={savedPosts} 
-            onBack={() => setActiveNav('home')}
-            onEditProfile={() => toast.info('Profil düzenleme yakında!')}
-            isCurrentUser={true}
-          />
-        )}
       </main>
 
       {/* Right Sidebar */}

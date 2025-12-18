@@ -7,6 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MatchHistory from "./pages/MatchHistory";
+import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/history" element={<MatchHistory />} />
+            <Route path="/profile/:userId" element={<Profile />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:conversationId" element={<Messages />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
