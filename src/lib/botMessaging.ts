@@ -173,3 +173,52 @@ export function isBotUser(userId: string): boolean {
 export function getBotUser(userId: string) {
   return BOT_USERS.find(b => b.id === userId);
 }
+
+// Bot Ratings System
+const BOT_RATINGS_KEY = 'qors_bot_ratings';
+
+export interface BotRating {
+  id: string;
+  rated_user_id: string;
+  rater_id: string;
+  rater_name: string;
+  rater_avatar: string;
+  average_rating: number;
+  skill_1: number;
+  skill_2: number;
+  skill_3: number;
+  skill_4: number;
+  sportsmanship: number;
+  reliability: number;
+  teamwork: number;
+  communication: number;
+  position: string;
+  comment?: string;
+  created_at: string;
+}
+
+export function getBotRatings(): BotRating[] {
+  try {
+    const stored = localStorage.getItem(BOT_RATINGS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveBotRating(rating: Omit<BotRating, 'id' | 'created_at'>): BotRating {
+  const ratings = getBotRatings();
+  const newRating: BotRating = {
+    ...rating,
+    id: `bot-rating-${Date.now()}`,
+    created_at: new Date().toISOString(),
+  };
+  ratings.unshift(newRating);
+  localStorage.setItem(BOT_RATINGS_KEY, JSON.stringify(ratings));
+  return newRating;
+}
+
+export function getRatingsForBot(botUserId: string): BotRating[] {
+  const ratings = getBotRatings();
+  return ratings.filter(r => r.rated_user_id === botUserId);
+}

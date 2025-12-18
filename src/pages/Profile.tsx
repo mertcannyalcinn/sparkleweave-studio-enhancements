@@ -7,7 +7,7 @@ import { ProfileComments } from '@/components/ProfileComments';
 import { ProfileMatchHistory } from '@/components/ProfileMatchHistory';
 import { Button } from '@/components/ui/button';
 import { BOT_USERS, POSITIONS, getScoreColor, getReliabilityBadge, SAMPLE_POSTS } from '@/lib/data';
-import { getBotConversation, createBotConversation, isBotUser } from '@/lib/botMessaging';
+import { getBotConversation, createBotConversation, isBotUser, getRatingsForBot, BotRating } from '@/lib/botMessaging';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -47,6 +47,7 @@ export default function Profile() {
   
   const [profile, setProfile] = useState<DatabaseProfile | null>(null);
   const [ratings, setRatings] = useState<Rating[]>([]);
+  const [botRatings, setBotRatings] = useState<BotRating[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Check if this is a bot user
@@ -59,7 +60,10 @@ export default function Profile() {
       return;
     }
     
-    if (botUser) {
+    if (botUser && userId) {
+      // Load bot ratings from localStorage
+      const storedBotRatings = getRatingsForBot(userId);
+      setBotRatings(storedBotRatings);
       setLoading(false);
       return;
     }
@@ -326,6 +330,41 @@ export default function Profile() {
                       <div className="w-full h-full flex items-center justify-center p-4 text-center text-sm text-muted-foreground">
                         {post.title.substring(0, 50)}...
                       </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Bot Ratings Section */}
+          {botRatings.length > 0 && (
+            <div className="mt-8 bg-card rounded-2xl border border-border p-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Star className="w-5 h-5 text-gold" />
+                Aldığı Puanlar
+              </h2>
+              <div className="space-y-3">
+                {botRatings.map((rating) => (
+                  <div key={rating.id} className="p-4 bg-surface rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={rating.rater_avatar || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200'}
+                        alt="Rater"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{rating.rater_name || 'Kullanıcı'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(rating.created_at).toLocaleDateString('tr-TR')}
+                        </p>
+                      </div>
+                      <div className={cn("text-lg font-bold", getScoreColor(rating.average_rating))}>
+                        {rating.average_rating.toFixed(1)}
+                      </div>
+                    </div>
+                    {rating.comment && (
+                      <p className="mt-2 text-sm text-muted-foreground">{rating.comment}</p>
                     )}
                   </div>
                 ))}
