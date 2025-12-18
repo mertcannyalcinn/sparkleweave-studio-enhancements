@@ -469,6 +469,165 @@ export const SAMPLE_POSTS: Post[] = [
     qorsScore: BOT_USERS[2].qorsScore,
     comments: [],
   },
+  {
+    id: "post-9",
+    type: 'transfer',
+    category: 'lmg',
+    user: BOT_USERS[3].name,
+    userId: BOT_USERS[3].id,
+    avatar: BOT_USERS[3].avatar,
+    title: "🔴 ACİL! 1 saat sonra maç var, 3 kişi eksik!",
+    description: "Ataşehir Carrefour yanı halı saha. 6v6 maç yapıyoruz. 2 kanat, 1 stoper lazım. Seviye orta-üst.",
+    location: "Ataşehir, Carrefour Yanı",
+    timeSpec: "Bugün 21:30",
+    price: "45₺/kişi",
+    urgency: "Acil",
+    subType: "oyuncu",
+    views: 789,
+    likes: 34,
+    isLiked: false,
+    isSaved: false,
+    time: "45 dakika önce",
+    qorsScore: BOT_USERS[3].qorsScore,
+    comments: [
+      {
+        id: "c6",
+        user: BOT_USERS[4].name,
+        userId: BOT_USERS[4].id,
+        avatar: BOT_USERS[4].avatar,
+        text: "Kanat için gelebilirim, DM?",
+        time: "30 dakika önce"
+      }
+    ],
+  },
+  {
+    id: "post-10",
+    type: 'video',
+    category: 'highlights',
+    user: BOT_USERS[4].name,
+    userId: BOT_USERS[4].id,
+    avatar: BOT_USERS[4].avatar,
+    title: "Bu gol nasıl oldu anlamadım! 😱⚽",
+    description: "Dünkü maçtan müthiş bir röveşata.",
+    thumbnail: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800",
+    views: 4560,
+    likes: 345,
+    isLiked: false,
+    isSaved: false,
+    time: "12 saat önce",
+    qorsScore: BOT_USERS[4].qorsScore,
+    badge: "🔥 Viral Gol",
+    comments: [
+      {
+        id: "c7",
+        user: BOT_USERS[3].name,
+        userId: BOT_USERS[3].id,
+        avatar: BOT_USERS[3].avatar,
+        text: "Bu nasıl bir gol be! 🔥",
+        time: "11 saat önce"
+      },
+      {
+        id: "c8",
+        user: BOT_USERS[2].name,
+        userId: BOT_USERS[2].id,
+        avatar: BOT_USERS[2].avatar,
+        text: "Puskas adayı!",
+        time: "10 saat önce"
+      }
+    ],
+  },
+  {
+    id: "post-11",
+    type: 'status',
+    category: 'tactics',
+    user: BOT_USERS[5].name,
+    userId: BOT_USERS[5].id,
+    avatar: BOT_USERS[5].avatar,
+    title: "Orta saha baskısında en önemli şey zamanlama. Rakip kaleciden çıkış yaparken baskıya çıkmak çok kritik 🧠",
+    views: 432,
+    likes: 56,
+    isLiked: false,
+    isSaved: false,
+    time: "4 saat önce",
+    qorsScore: BOT_USERS[5].qorsScore,
+    tags: ["Taktik", "Pressing", "Orta Saha"],
+    comments: [],
+  },
+  {
+    id: "post-12",
+    type: 'transfer',
+    category: 'lmg',
+    user: BOT_USERS[1].name,
+    userId: BOT_USERS[1].id,
+    avatar: BOT_USERS[1].avatar,
+    title: "Cumartesi günü düzenli maç grubu kuruyoruz",
+    description: "Her Cumartesi 10:00-12:00 arası Levent'te maç. Düzenli katılım şart. Kaleci ve 2 defans arıyoruz.",
+    location: "Levent, Kanyon Arkası",
+    timeSpec: "Her Cumartesi 10:00",
+    price: "70₺/hafta",
+    subType: "oyuncu",
+    views: 567,
+    likes: 89,
+    isLiked: false,
+    isSaved: false,
+    time: "2 gün önce",
+    qorsScore: BOT_USERS[1].qorsScore,
+    comments: [
+      {
+        id: "c9",
+        user: BOT_USERS[0].name,
+        userId: BOT_USERS[0].id,
+        avatar: BOT_USERS[0].avatar,
+        text: "Kaleci olarak ilgileniyorum, detay verir misin?",
+        time: "1 gün önce"
+      }
+    ],
+  },
+  {
+    id: "post-13",
+    type: 'lineup',
+    category: 'tactics',
+    user: BOT_USERS[2].name,
+    userId: BOT_USERS[2].id,
+    avatar: BOT_USERS[2].avatar,
+    title: "3-5-2 ile savunmada sağlamlık 🛡️",
+    description: "Bu dizilişte kanat-bekler çok önemli. Hem savunma hem hücuma katkı vermeli.",
+    formation: "3-5-2",
+    views: 678,
+    likes: 78,
+    isLiked: false,
+    isSaved: false,
+    time: "1 gün önce",
+    qorsScore: BOT_USERS[2].qorsScore,
+    tags: ["Taktik", "3-5-2", "Savunma"],
+    comments: [],
+  },
+  {
+    id: "post-14",
+    type: 'status',
+    category: 'all',
+    user: BOT_USERS[0].name,
+    userId: BOT_USERS[0].id,
+    avatar: BOT_USERS[0].avatar,
+    title: "10 yıldır kaleci oynuyorum, ama dün ilk golümü attım! Köşe vuruşundan kafa golü 🎉",
+    thumbnail: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&q=80&w=800",
+    views: 1890,
+    likes: 234,
+    isLiked: false,
+    isSaved: false,
+    time: "16 saat önce",
+    qorsScore: BOT_USERS[0].qorsScore,
+    comments: [
+      {
+        id: "c10",
+        user: BOT_USERS[3].name,
+        userId: BOT_USERS[3].id,
+        avatar: BOT_USERS[3].avatar,
+        text: "Artık golcü olarak da oynarsın 😂",
+        time: "15 saat önce"
+      }
+    ],
+  },
 ];
 
 // Sample notifications
@@ -517,6 +676,36 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     time: '1 gün önce',
     isRead: true,
   },
+  {
+    id: "n6",
+    type: 'like',
+    title: 'Yeni Beğeni',
+    message: 'gönderini beğendi',
+    user: BOT_USERS[0].name,
+    avatar: BOT_USERS[0].avatar,
+    time: '30 dakika önce',
+    isRead: false,
+  },
+  {
+    id: "n7",
+    type: 'comment',
+    title: 'Yeni Yorum',
+    message: 'profiline yorum bıraktı: "Harika takım arkadaşı!"',
+    user: BOT_USERS[5].name,
+    avatar: BOT_USERS[5].avatar,
+    time: '3 saat önce',
+    isRead: false,
+  },
+  {
+    id: "n8",
+    type: 'system',
+    title: 'Yeni Takipçi',
+    message: 'seni takip etmeye başladı',
+    user: BOT_USERS[4].name,
+    avatar: BOT_USERS[4].avatar,
+    time: '4 saat önce',
+    isRead: true,
+  },
 ];
 
 // Trending topics
@@ -526,6 +715,9 @@ export const TRENDING_TOPICS = [
   { tag: '#MaçBul', posts: '1.2K' },
   { tag: '#Taktik', posts: '890' },
   { tag: '#GolKralı', posts: '756' },
+  { tag: '#LMG', posts: '623' },
+  { tag: '#Kaleci', posts: '445' },
+  { tag: '#İstanbul', posts: '3.1K' },
 ];
 
 // Upcoming matches
@@ -533,6 +725,18 @@ export const UPCOMING_MATCHES = [
   { teams: 'FC Mahalle vs Yıldızlar', time: 'Bugün 20:00', location: 'Etiler' },
   { teams: 'Kartal SK vs Beşiktaş', time: 'Yarın 19:00', location: 'Kadıköy' },
   { teams: 'Şişli United vs Beyoğlu', time: 'Çarşamba 21:00', location: 'Şişli' },
+  { teams: 'Levent FC vs Maslak', time: 'Perşembe 20:30', location: 'Levent' },
+  { teams: 'Ataşehir vs Üsküdar', time: 'Cuma 19:00', location: 'Ataşehir' },
+];
+
+// Popular locations
+export const POPULAR_LOCATIONS = [
+  { name: 'Kadıköy', matches: 45 },
+  { name: 'Beşiktaş', matches: 38 },
+  { name: 'Şişli', matches: 32 },
+  { name: 'Ataşehir', matches: 28 },
+  { name: 'Levent', matches: 25 },
+  { name: 'Etiler', matches: 22 },
 ];
 
 // Helper functions

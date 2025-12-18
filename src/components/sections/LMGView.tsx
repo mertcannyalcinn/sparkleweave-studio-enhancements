@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { AlertCircle, MapPin, Clock, Users, Filter, ChevronRight } from 'lucide-react';
-import { SAMPLE_POSTS, BOT_USERS } from '@/lib/data';
+import { SAMPLE_POSTS, Post } from '@/lib/data';
 import { cn } from '@/lib/utils';
+import { JoinMatchModal, JoinMatchData } from '@/components/modals/JoinMatchModal';
+import { toast } from '@/hooks/use-toast';
 
 interface LMGViewProps {
   onCreateMatch: () => void;
@@ -8,10 +11,34 @@ interface LMGViewProps {
 }
 
 export function LMGView({ onCreateMatch, onUserClick }: LMGViewProps) {
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  
   const lmgPosts = SAMPLE_POSTS.filter(p => p.category === 'lmg' || p.urgency === 'Acil');
+
+  const handleJoinClick = (post: Post) => {
+    setSelectedPost(post);
+    setIsJoinModalOpen(true);
+  };
+
+  const handleJoinSubmit = (data: JoinMatchData) => {
+    console.log('Join match data:', data);
+    toast({
+      title: "Başvurun gönderildi!",
+      description: `${selectedPost?.user} seninle iletişime geçecek.`,
+    });
+  };
 
   return (
     <div className="p-8 animate-fade-in">
+      {/* Join Match Modal */}
+      <JoinMatchModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+        post={selectedPost}
+        onSubmit={handleJoinSubmit}
+      />
+
       {/* Header */}
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
@@ -133,7 +160,10 @@ export function LMGView({ onCreateMatch, onUserClick }: LMGViewProps) {
                   <Users className="w-4 h-4" />
                   <span>{post.comments.length} başvuru</span>
                 </div>
-                <button className="px-5 py-2 bg-primary text-primary-foreground rounded-xl font-semibold hover:shadow-glow transition-all flex items-center gap-2">
+                <button 
+                  onClick={() => handleJoinClick(post)}
+                  className="px-5 py-2 bg-primary text-primary-foreground rounded-xl font-semibold hover:shadow-glow transition-all flex items-center gap-2"
+                >
                   Katıl
                   <ChevronRight className="w-4 h-4" />
                 </button>
