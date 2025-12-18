@@ -145,7 +145,7 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
 
             {/* Step Indicator */}
             <div className="flex items-center justify-center gap-2 py-2">
-              {[1, 2, 3].map((s) => (
+              {[1, 2].map((s) => (
                 <div
                   key={s}
                   className={cn(
@@ -226,46 +226,9 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
               </div>
             )}
 
-            {/* Step 2: Experience */}
-            {step === 2 && (
-              <div className="space-y-4 animate-fade-in">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">Tecrübe seviyen nedir?</span>
-                </div>
-                <RadioGroup value={experience} onValueChange={setExperience} className="space-y-3">
-                  {EXPERIENCE_OPTIONS.map((opt) => (
-                    <div
-                      key={opt.id}
-                      className={cn(
-                        "flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all",
-                        experience === opt.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                      onClick={() => setExperience(opt.id)}
-                    >
-                      <RadioGroupItem value={opt.id} id={opt.id} />
-                      <Label htmlFor={opt.id} className="flex-1 cursor-pointer">
-                        <div className="font-semibold">{opt.label}</div>
-                        <div className="text-xs text-muted-foreground">{opt.desc}</div>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                    Geri
-                  </Button>
-                  <Button onClick={() => setStep(3)} className="flex-1 gap-2">
-                    Devam Et <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
 
-            {/* Step 3: Message */}
-            {step === 3 && (
+            {/* Step 2: Message */}
+            {step === 2 && (
               <div className="space-y-4 animate-fade-in">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MessageSquare className="w-4 h-4" />
@@ -289,11 +252,10 @@ export function JoinMatchModal({ isOpen, onClose, post, onSubmit }: JoinMatchMod
                         </span>
                       ))}
                     </span></p>
-                    <p>⚽ Tecrübe: <span className="text-foreground">{EXPERIENCE_OPTIONS.find(e => e.id === experience)?.label}</span></p>
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
                     Geri
                   </Button>
                   <Button onClick={handleSubmit} className="flex-1 gap-2">
