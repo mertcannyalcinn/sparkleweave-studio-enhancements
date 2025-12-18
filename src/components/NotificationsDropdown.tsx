@@ -59,7 +59,7 @@ export function NotificationsDropdown({ onOpenRating, onClose, onPostClick, onUs
 
   return (
     <div 
-      className="absolute left-full ml-3 top-0 w-80 bg-card border border-border rounded-2xl shadow-card overflow-hidden z-50 animate-scale-in"
+      className="absolute left-full ml-3 top-0 w-80 bg-card/95 backdrop-blur-xl border border-border rounded-2xl shadow-card overflow-hidden z-50 animate-scale-in"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
