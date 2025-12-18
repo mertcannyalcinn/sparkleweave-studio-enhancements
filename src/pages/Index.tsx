@@ -13,6 +13,7 @@ import { RightSidebar } from '@/components/RightSidebar';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { CreateMatchModal } from '@/components/modals/CreateMatchModal';
 import { PlayerRatingModal } from '@/components/modals/PlayerRatingModal';
+import { JoinMatchModal, JoinMatchData } from '@/components/modals/JoinMatchModal';
 import { SearchView } from '@/components/sections/SearchView';
 import { AcademyView } from '@/components/sections/AcademyView';
 import { LMGView } from '@/components/sections/LMGView';
@@ -40,6 +41,8 @@ export default function Index() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -254,6 +257,16 @@ export default function Index() {
     navigate('/auth');
   };
 
+  const handleJoinClick = (post: Post) => {
+    setSelectedPost(post);
+    setIsJoinModalOpen(true);
+  };
+
+  const handleJoinSubmit = (data: JoinMatchData) => {
+    console.log('Join match data:', data);
+    toast.success('Başvurunuz iletildi!');
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex overflow-hidden">
       {/* Modals */}
@@ -269,6 +282,15 @@ export default function Index() {
           onSubmit={handlePlayerRatingSubmit}
         />
       )}
+      <JoinMatchModal
+        isOpen={isJoinModalOpen}
+        onClose={() => {
+          setIsJoinModalOpen(false);
+          setSelectedPost(null);
+        }}
+        post={selectedPost}
+        onSubmit={handleJoinSubmit}
+      />
 
       {/* Left Sidebar */}
       <aside className="w-20 bg-card flex flex-col items-center py-6 border-r border-border z-20 shrink-0">
@@ -437,7 +459,7 @@ export default function Index() {
                         onLike={() => handleLike(post.id)}
                         onSave={() => handleSave(post.id)}
                         onDelete={() => handleDeletePost(post.id)}
-                        onApply={post.type === 'transfer' ? () => toast.success('Başvurunuz iletildi!') : undefined}
+                        onApply={post.type === 'transfer' ? () => handleJoinClick(post) : undefined}
                         onAddComment={(text) => handleAddComment(post.id, text)}
                         onUserClick={handleUserClick}
                       />
