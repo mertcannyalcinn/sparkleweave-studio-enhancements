@@ -62,13 +62,16 @@ export interface Post {
 
 export interface Notification {
   id: string;
-  type: 'like' | 'comment' | 'system' | 'match_rating' | 'match_star';
+  type: 'like' | 'comment' | 'system' | 'match_rating' | 'match_star' | 'follow';
   title: string;
   message?: string;
   user?: string;
+  userId?: string;
   avatar?: string;
   time: string;
   isRead: boolean;
+  postId?: string;
+  commentId?: string;
 }
 
 export interface PositionAttribute {
@@ -646,9 +649,11 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     title: 'Yeni Beğeni',
     message: 'gönderini beğendi',
     user: BOT_USERS[2].name,
+    userId: BOT_USERS[2].id,
     avatar: BOT_USERS[2].avatar,
     time: '15 dakika önce',
     isRead: false,
+    postId: 'post1',
   },
   {
     id: "n3",
@@ -656,9 +661,12 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     title: 'Yeni Yorum',
     message: 'gönderine yorum yaptı: "Harika performans!"',
     user: BOT_USERS[3].name,
+    userId: BOT_USERS[3].id,
     avatar: BOT_USERS[3].avatar,
     time: '1 saat önce',
     isRead: true,
+    postId: 'post2',
+    commentId: 'c1',
   },
   {
     id: "n4",
@@ -682,9 +690,11 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     title: 'Yeni Beğeni',
     message: 'gönderini beğendi',
     user: BOT_USERS[0].name,
+    userId: BOT_USERS[0].id,
     avatar: BOT_USERS[0].avatar,
     time: '30 dakika önce',
     isRead: false,
+    postId: 'post3',
   },
   {
     id: "n7",
@@ -692,16 +702,18 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     title: 'Yeni Yorum',
     message: 'profiline yorum bıraktı: "Harika takım arkadaşı!"',
     user: BOT_USERS[5].name,
+    userId: BOT_USERS[5].id,
     avatar: BOT_USERS[5].avatar,
     time: '3 saat önce',
     isRead: false,
   },
   {
     id: "n8",
-    type: 'system',
+    type: 'follow',
     title: 'Yeni Takipçi',
     message: 'seni takip etmeye başladı',
     user: BOT_USERS[4].name,
+    userId: BOT_USERS[4].id,
     avatar: BOT_USERS[4].avatar,
     time: '4 saat önce',
     isRead: true,
