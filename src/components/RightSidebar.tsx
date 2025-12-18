@@ -103,7 +103,7 @@ export function RightSidebar({ onUserClick }: RightSidebarProps) {
       {/* Footer */}
       <div className="mt-8 pt-4 border-t border-border">
         <p className="text-xs text-muted-foreground text-center">
-          Qors © 2024 • Tüm hakları saklıdır
+          Qors © {new Date().getFullYear()} • Tüm hakları saklıdır
         </p>
       </div>
     </aside>

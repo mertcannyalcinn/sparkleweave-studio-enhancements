@@ -165,7 +165,7 @@ export function PostCard({
             <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
           </button>
           {showMenu && (
-            <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-xl shadow-card overflow-hidden z-20 animate-scale-in">
+            <div className="absolute right-0 top-full mt-1 w-40 bg-popover/95 backdrop-blur-xl border border-border rounded-xl shadow-card overflow-hidden z-20 animate-scale-in">
               {isOwner && (
                 <button
                   onClick={() => { onDelete(); setShowMenu(false); }}

@@ -633,7 +633,7 @@ export const SAMPLE_POSTS: Post[] = [
   },
 ];
 
-// Sample notifications
+// Sample notifications - postIds match actual SAMPLE_POSTS ids
 export const SAMPLE_NOTIFICATIONS: Notification[] = [
   {
     id: "n1",
@@ -653,7 +653,7 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     avatar: BOT_USERS[2].avatar,
     time: '15 dakika önce',
     isRead: false,
-    postId: 'post1',
+    postId: 'post-1',
   },
   {
     id: "n3",
@@ -665,7 +665,7 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     avatar: BOT_USERS[3].avatar,
     time: '1 saat önce',
     isRead: true,
-    postId: 'post2',
+    postId: 'post-3',
     commentId: 'c1',
   },
   {
@@ -694,7 +694,7 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     avatar: BOT_USERS[0].avatar,
     time: '30 dakika önce',
     isRead: false,
-    postId: 'post3',
+    postId: 'post-10',
   },
   {
     id: "n7",
@@ -706,6 +706,8 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
     avatar: BOT_USERS[5].avatar,
     time: '3 saat önce',
     isRead: false,
+    postId: 'post-8',
+    commentId: 'c2',
   },
   {
     id: "n8",

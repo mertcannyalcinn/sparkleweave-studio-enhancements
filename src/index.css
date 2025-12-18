@@ -267,6 +267,10 @@
     background-size: 200% 100%;
   }
 
+  .animate-highlight {
+    animation: highlight 1.5s ease-out;
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -307,6 +311,11 @@
     to { background-position: -200% 0; }
   }
 
+  @keyframes highlight {
+    0% { background-color: hsla(142, 71%, 45%, 0.2); }
+    100% { background-color: transparent; }
+  }
+
   /* Stagger animations */
   .stagger-1 { animation-delay: 0.05s; }
   .stagger-2 { animation-delay: 0.1s; }
@@ -314,4 +323,13 @@
   .stagger-4 { animation-delay: 0.2s; }
   .stagger-5 { animation-delay: 0.25s; }
   .stagger-6 { animation-delay: 0.3s; }
+
+  /* Interactive feedback */
+  .active\:scale-95:active {
+    transform: scale(0.95);
+  }
+
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
 }
