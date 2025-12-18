@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trophy, Target, Medal, Shield, Calendar, Star, MessageCircle, UserPlus, Settings, MapPin, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trophy, Target, Medal, Shield, Calendar, Star, MessageCircle, UserPlus, UserMinus, Settings, MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileComments } from '@/components/ProfileComments';
 import { ProfileMatchHistory } from '@/components/ProfileMatchHistory';
 import { Button } from '@/components/ui/button';
 import { BOT_USERS, POSITIONS, getScoreColor, getReliabilityBadge, SAMPLE_POSTS } from '@/lib/data';
-import { getBotConversation, createBotConversation, isBotUser, getRatingsForBot, BotRating } from '@/lib/botMessaging';
+import { getBotConversation, createBotConversation, isBotUser, getRatingsForBot, BotRating, isFollowingBot, followBot, unfollowBot, getBotFollowerCount } from '@/lib/botMessaging';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -49,6 +49,10 @@ export default function Profile() {
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [botRatings, setBotRatings] = useState<BotRating[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // Check if this is a bot user
   const botUser = BOT_USERS.find(u => u.id === userId);
@@ -60,17 +64,22 @@ export default function Profile() {
       return;
     }
     
-    if (botUser && userId) {
+    if (botUser && userId && currentUser) {
       // Load bot ratings from localStorage
       const storedBotRatings = getRatingsForBot(userId);
       setBotRatings(storedBotRatings);
+      // Load bot follow status
+      setIsFollowing(isFollowingBot(currentUser.id, userId));
+      setFollowerCount(botUser.followers + getBotFollowerCount(userId));
+      setFollowingCount(botUser.following);
       setLoading(false);
       return;
     }
     
-    if (userId) {
+    if (userId && currentUser) {
       fetchProfile();
       fetchRatings();
+      fetchFollowData();
     }
   }, [userId, currentUser, authLoading]);
 
@@ -120,6 +129,93 @@ export default function Profile() {
       }
     } catch (error) {
       console.error('Error fetching ratings:', error);
+    }
+  };
+
+  const fetchFollowData = async () => {
+    if (!currentUser || !userId) return;
+    
+    try {
+      // Check if current user is following this profile
+      const { data: followData } = await supabase
+        .from('follows')
+        .select('id')
+        .eq('follower_id', currentUser.id)
+        .eq('following_id', userId)
+        .maybeSingle();
+      
+      setIsFollowing(!!followData);
+
+      // Get follower count
+      const { count: followers } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', userId);
+      
+      setFollowerCount(followers || 0);
+
+      // Get following count
+      const { count: following } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', userId);
+      
+      setFollowingCount(following || 0);
+    } catch (error) {
+      console.error('Error fetching follow data:', error);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser || !userId || followLoading) return;
+    
+    // Handle bot follow
+    if (botUser) {
+      if (isFollowing) {
+        unfollowBot(currentUser.id, userId);
+        setIsFollowing(false);
+        setFollowerCount(prev => prev - 1);
+        toast.success(`${botUser.name} takipten çıkarıldı`);
+      } else {
+        followBot(currentUser.id, userId);
+        setIsFollowing(true);
+        setFollowerCount(prev => prev + 1);
+        toast.success(`${botUser.name} takip edildi`);
+      }
+      return;
+    }
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await supabase
+          .from('follows')
+          .delete()
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', userId);
+        
+        setIsFollowing(false);
+        setFollowerCount(prev => prev - 1);
+        toast.success('Takipten çıkarıldı');
+      } else {
+        // Follow
+        await supabase
+          .from('follows')
+          .insert({
+            follower_id: currentUser.id,
+            following_id: userId
+          });
+        
+        setIsFollowing(true);
+        setFollowerCount(prev => prev + 1);
+        toast.success('Takip edildi');
+      }
+    } catch (error) {
+      console.error('Error following/unfollowing:', error);
+      toast.error('Bir hata oluştu');
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -290,20 +386,33 @@ export default function Profile() {
           {/* Followers */}
           <div className="flex items-center gap-6 mt-4">
             <div className="flex items-center gap-2">
-              <span className="font-bold">{botUser.followers}</span>
+              <span className="font-bold">{followerCount}</span>
               <span className="text-muted-foreground text-sm">Takipçi</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold">{botUser.following}</span>
+              <span className="font-bold">{followingCount}</span>
               <span className="text-muted-foreground text-sm">Takip</span>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3 mt-6">
-            <Button className="flex-1">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Takip Et
+            <Button 
+              className="flex-1" 
+              variant={isFollowing ? "outline" : "default"}
+              onClick={handleFollow}
+            >
+              {isFollowing ? (
+                <>
+                  <UserMinus className="w-4 h-4 mr-2" />
+                  Takipten Çık
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Takip Et
+                </>
+              )}
             </Button>
             <Button variant="outline" className="flex-1" onClick={handleBotMessage}>
               <MessageCircle className="w-4 h-4 mr-2" />
@@ -501,12 +610,38 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* Followers */}
+        <div className="flex items-center gap-6 mt-4">
+          <div className="flex items-center gap-2">
+            <span className="font-bold">{followerCount}</span>
+            <span className="text-muted-foreground text-sm">Takipçi</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold">{followingCount}</span>
+            <span className="text-muted-foreground text-sm">Takip</span>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         {!isCurrentUser && (
           <div className="flex gap-3 mt-6">
-            <Button className="flex-1">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Takip Et
+            <Button 
+              className="flex-1" 
+              variant={isFollowing ? "outline" : "default"}
+              onClick={handleFollow}
+              disabled={followLoading}
+            >
+              {isFollowing ? (
+                <>
+                  <UserMinus className="w-4 h-4 mr-2" />
+                  Takipten Çık
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Takip Et
+                </>
+              )}
             </Button>
             <Button variant="outline" className="flex-1" onClick={handleStartConversation}>
               <MessageCircle className="w-4 h-4 mr-2" />
